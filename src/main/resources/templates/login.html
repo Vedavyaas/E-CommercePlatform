@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Sign in to EcommercePlatform — your all-in-one commerce hub."/>
+  <title>Login — EcommercePlatform</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+<div class="page-center">
+  <div class="card">
+
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-icon">🛒</div>
+      <span class="brand-name">EcommercePlatform</span>
+    </div>
+
+    <h1 class="page-title">Welcome back</h1>
+    <p class="page-sub">Sign in to your account to continue.</p>
+
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="your_username" autocomplete="username" required/>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" required/>
+      </div>
+
+      <div class="link-row" style="margin-bottom:1.4rem;">
+        <span></span>
+        <a href="/forgot-password" class="text-link">Forgot password?</a>
+      </div>
+
+      <button id="loginBtn" type="submit" class="btn btn-primary">Sign In</button>
+    </form>
+
+    <div class="divider">or</div>
+
+    <a href="/register" class="btn btn-ghost">Create an account</a>
+  </div>
+</div>
+
+<script th:src="@{/js/utils.js}"></script>
+<script>
+  // Already logged in? Redirect
+  (function() {
+    const t = getToken();
+    if (t) {
+      const role = getRole();
+      if (role) { window.location.href = '/dashboard/' + role; }
+    }
+  })();
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!username || !password) {
+      showToast('Please fill in all fields.', 'error');
+      return;
+    }
+
+    setLoading(btn, true);
+    const result = await apiPost('/api/user/login', { username, password });
+    setLoading(btn, false);
+
+    if (result.ok && result.data?.token) {
+      saveToken(result.data.token);
+      const role = getRole();
+      showToast('Signed in successfully!');
+      setTimeout(() => {
+        window.location.href = '/dashboard/' + (role || 'customer');
+      }, 600);
+    } else {
+      showToast(result.data || 'Invalid username or password.', 'error');
+    }
+  });
+</script>
+</body>
+</html>
