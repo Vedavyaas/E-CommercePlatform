@@ -39,13 +39,7 @@
         You're signed in as an <strong>Administrator</strong>.
       </p>
 
-      <!-- Danger Zone -->
-      <div class="danger-zone">
-        <h3>⚠ Danger Zone</h3>
-        <button id="deleteBtn" class="btn btn-danger" onclick="deleteAccount()">
-          🗑 Delete My Account
-        </button>
-      </div>
+
     </div>
   </main>
 
@@ -61,21 +55,7 @@
   document.getElementById('welcomeUsername').textContent = username;
   document.getElementById('avatarInitial').textContent = username.charAt(0).toUpperCase();
 
-  async function deleteAccount() {
-    if (!confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
-    const btn = document.getElementById('deleteBtn');
-    setLoading(btn, true);
 
-    const result = await apiPut('/account/delete', undefined, true);
-    setLoading(btn, false);
-
-    if (result.ok) {
-      showToast('Account deleted. Goodbye!');
-      setTimeout(() => { clearToken(); window.location.href = '/login'; }, 1600);
-    } else {
-      showToast(result.data || 'Could not delete account.', 'error');
-    }
-  }
 </script>
 </body>
 </html>

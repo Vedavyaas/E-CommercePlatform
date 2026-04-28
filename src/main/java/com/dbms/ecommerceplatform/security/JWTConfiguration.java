@@ -78,7 +78,7 @@ public class JWTConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(http -> http
-                .requestMatchers("/api/user/**").permitAll()
+                .requestMatchers("/api/user/**", "/h2-console/**").permitAll()
                 .requestMatchers("/", "/login", "/register", "/forgot-password").permitAll()
                 .requestMatchers("/dashboard/**").permitAll()
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()

@@ -37,11 +37,6 @@ public class UserController {
         return ResponseEntity.ok(accountService.resetAccountPassword(username, newPassword));
     }
 
-    @PutMapping("/account/delete")
-    public ResponseEntity<String> delete(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(accountService.deleteAccount(jwt.getSubject()));
-    }
-
     @ExceptionHandler(InvalidityException.class)
     public ResponseEntity<String> handle(InvalidityException ex) {
         return ResponseEntity.badRequest().body(ex.getMessage());

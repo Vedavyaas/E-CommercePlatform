@@ -354,6 +354,15 @@ body.dashboard-page {
   justify-content: center;
 }
 
+/* sidebar-layout dashboards don't centre their content */
+.dash-wrapper.sidebar-layout {
+  flex-direction: column;
+}
+.dash-wrapper.sidebar-layout .cdash-layout {
+  flex: 1;
+  display: flex;
+}
+
 .dash-card {
   background: var(--bg-card);
   backdrop-filter: blur(18px) saturate(180%);

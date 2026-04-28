@@ -6,6 +6,303 @@
   <meta name="description" content="Vendor Dashboard — EcommercePlatform"/>
   <title>Vendor Dashboard — EcommercePlatform</title>
   <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+  <style>
+    /* ── Sidebar layout ── */
+    .cdash-layout {
+      display: flex;
+      flex: 1;
+      min-height: calc(100vh - 64px);
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .cdash-sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.03);
+      border-right: 1px solid var(--border);
+      padding: 1.8rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      overflow-y: auto;
+    }
+
+    .sidebar-section-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      padding: 0.9rem 1.4rem 0.4rem;
+    }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.65rem 1.4rem;
+      margin: 0 0.6rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: background var(--transition), color var(--transition), transform var(--transition);
+      border: none;
+      background: none;
+      width: calc(100% - 1.2rem);
+      text-align: left;
+    }
+    .sidebar-nav-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+      transform: translateX(2px);
+    }
+    .sidebar-nav-item.active {
+      background: rgba(138,99,255,0.15);
+      color: var(--accent-1);
+      font-weight: 600;
+    }
+    .sidebar-nav-item.danger-item { color: #ff8a95; }
+    .sidebar-nav-item.danger-item:hover {
+      background: rgba(255,95,110,0.1);
+      color: var(--danger);
+    }
+    .sidebar-nav-item.danger-item.active {
+      background: rgba(255,95,110,0.15);
+      color: var(--danger);
+    }
+    .sidebar-icon { font-size: 1rem; width: 1.2rem; text-align: center; flex-shrink: 0; }
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0.75rem 1.2rem;
+    }
+
+    /* ── Main content area ── */
+    .cdash-content {
+      flex: 1;
+      padding: 2.5rem 2.8rem;
+      overflow-y: auto;
+    }
+
+    /* ── Panel ── */
+    .cdash-panel {
+      display: none;
+      animation: slideUp 0.32s cubic-bezier(0.4,0,0.2,1) both;
+      max-width: 640px;
+    }
+    .cdash-panel.active { display: block; }
+
+    .panel-header {
+      margin-bottom: 2rem;
+    }
+    .panel-header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: 0.3rem;
+    }
+    .panel-header p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    /* ── Profile card ── */
+    .profile-hero {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-card);
+    }
+    .profile-avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--accent-grad);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 4px 18px rgba(138,99,255,0.35);
+    }
+    .profile-meta h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+    }
+    .profile-meta .profile-sub {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .profile-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .profile-field {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.2rem;
+      backdrop-filter: blur(10px);
+    }
+    .profile-field-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+    .profile-field-value {
+      font-size: 0.975rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .profile-field-value.empty {
+      color: var(--text-muted);
+      font-style: italic;
+      font-weight: 400;
+    }
+    /* Store description spans full width */
+    .profile-field.full-width {
+      grid-column: 1 / -1;
+    }
+    .profile-field-value.desc {
+      font-size: 0.88rem;
+      font-weight: 400;
+      line-height: 1.55;
+      color: var(--text-secondary);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+    }
+    .status-badge.registered {
+      background: rgba(60,200,120,0.15);
+      color: #6efaaa;
+      border: 1px solid rgba(60,200,120,0.25);
+    }
+    .status-badge.not-registered {
+      background: rgba(255,95,110,0.12);
+      color: #ffaab0;
+      border: 1px solid rgba(255,95,110,0.22);
+    }
+
+    /* ── Form panel card ── */
+    .form-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-card);
+    }
+    .form-card .form-group { margin-bottom: 1.2rem; }
+    .form-card .btn { width: auto; min-width: 160px; }
+
+    /* ── Inline tip ── */
+    .field-tip {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    /* ── Textarea ── */
+    .form-card textarea {
+      width: 100%;
+      min-height: 100px;
+      resize: vertical;
+      background: var(--bg-input, rgba(255,255,255,0.05));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      padding: 0.75rem 1rem;
+      font-family: inherit;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      box-sizing: border-box;
+    }
+    .form-card textarea:focus {
+      outline: none;
+      border-color: var(--accent-1);
+      box-shadow: 0 0 0 3px rgba(138,99,255,0.15);
+    }
+
+    /* ── Danger panel ── */
+    .danger-card {
+      background: rgba(255,95,110,0.06);
+      border: 1px solid rgba(255,95,110,0.18);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+    }
+    .danger-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--danger);
+      margin-bottom: 0.5rem;
+    }
+    .danger-card p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.4rem;
+      line-height: 1.55;
+    }
+
+    /* ── Loader overlay for profile ── */
+    .profile-loading {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      padding: 1.5rem 0;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .cdash-layout { flex-direction: column; }
+      .cdash-sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 0.6rem;
+        gap: 0.2rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-section-label, .sidebar-divider { display: none; }
+      .sidebar-nav-item { width: auto; font-size: 0.8rem; padding: 0.5rem 0.8rem; }
+      .cdash-content { padding: 1.5rem 1rem; }
+      .profile-fields { grid-template-columns: 1fr; }
+      .profile-field.full-width { grid-column: 1; }
+      .profile-hero { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
 <body class="dashboard-page">
 <div class="dash-wrapper">
@@ -26,53 +323,267 @@
     </div>
   </header>
 
-  <!-- Main Content -->
-  <main class="dash-main">
-    <div class="dash-card">
-      <span class="role-icon">🏪</span>
-      <h1>Vendor Dashboard</h1>
-      <p class="dash-welcome-sub">
-        Welcome, <strong id="welcomeUsername">…</strong>!<br/>
-        You're signed in as a <strong>Vendor</strong>.
-      </p>
+  <!-- Body -->
+  <div class="cdash-layout">
 
-      <!-- Danger Zone -->
-      <div class="danger-zone">
-        <h3>⚠ Danger Zone</h3>
-        <button id="deleteBtn" class="btn btn-danger" onclick="deleteAccount()">
-          🗑 Delete My Account
-        </button>
-      </div>
-    </div>
-  </main>
+    <!-- Sidebar -->
+    <nav class="cdash-sidebar" aria-label="Vendor navigation">
+      <span class="sidebar-section-label">Store</span>
 
-</div>
+      <button class="sidebar-nav-item active" id="nav-profile" onclick="showPanel('profile')">
+        <span class="sidebar-icon">🏪</span> My Store
+      </button>
+
+      <button class="sidebar-nav-item" id="nav-enter" onclick="showPanel('enter')">
+        <span class="sidebar-icon">✏️</span> Enter Credentials
+      </button>
+
+      <div class="sidebar-section-label">Modify</div>
+
+      <button class="sidebar-nav-item" id="nav-storename" onclick="showPanel('storename')">
+        <span class="sidebar-icon">🔤</span> Change Store Name
+      </button>
+
+      <button class="sidebar-nav-item" id="nav-storedesc" onclick="showPanel('storedesc')">
+        <span class="sidebar-icon">📝</span> Change Description
+      </button>
+
+
+    </nav>
+
+    <!-- Content -->
+    <main class="cdash-content">
+
+      <!-- ── Panel: My Store ── -->
+      <section class="cdash-panel active" id="panel-profile">
+        <div class="panel-header">
+          <h1>My Store</h1>
+          <p>Your registered vendor details fetched directly from the server.</p>
+        </div>
+
+        <div id="profileLoading" class="profile-loading">
+          <span class="spinner"></span> Loading store profile…
+        </div>
+
+        <div id="profileContent" style="display:none">
+          <div class="profile-hero">
+            <div class="profile-avatar" id="profileAvatar">?</div>
+            <div class="profile-meta">
+              <h2 id="profileStoreName">—</h2>
+              <div class="profile-sub" id="profileUsername">@username</div>
+              <div style="margin-top:0.5rem" id="profileStatus"></div>
+            </div>
+          </div>
+
+          <div class="profile-fields">
+            <div class="profile-field">
+              <div class="profile-field-label">Vendor ID</div>
+              <div class="profile-field-value" id="pfId">—</div>
+            </div>
+            <div class="profile-field">
+              <div class="profile-field-label">Store Name</div>
+              <div class="profile-field-value" id="pfStoreName">—</div>
+            </div>
+            <div class="profile-field full-width">
+              <div class="profile-field-label">Store Description</div>
+              <div class="profile-field-value desc" id="pfStoreDesc">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="profileError" style="display:none; margin-top:1rem;">
+          <div class="status-badge not-registered">⚠ Credentials not entered yet</div>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.6rem;">
+            Head over to <strong>Enter Credentials</strong> to set up your store profile.
+          </p>
+        </div>
+      </section>
+
+      <!-- ── Panel: Enter Credentials ── -->
+      <section class="cdash-panel" id="panel-enter">
+        <div class="panel-header">
+          <h1>Enter Credentials</h1>
+          <p>Set your vendor store profile for the first time. This can only be done once.</p>
+        </div>
+        <div class="form-card">
+          <div class="form-group">
+            <label for="enterStoreName">Store Name</label>
+            <input type="text" id="enterStoreName" placeholder="e.g. Vedavyaas Electronics" autocomplete="organization"/>
+          </div>
+          <div class="form-group">
+            <label for="enterStoreDesc">Store Description</label>
+            <textarea id="enterStoreDesc" placeholder="Briefly describe what your store sells…"></textarea>
+            <div class="field-tip">Keep it concise — buyers will see this on your store page.</div>
+          </div>
+          <button class="btn btn-primary" id="enterBtn" onclick="submitEnterCredentials()">
+            💾 Save Credentials
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Panel: Change Store Name ── -->
+      <section class="cdash-panel" id="panel-storename">
+        <div class="panel-header">
+          <h1>Change Store Name</h1>
+          <p>Update your store's display name on the platform. Requires credentials to be entered first.</p>
+        </div>
+        <div class="form-card">
+          <div class="form-group">
+            <label for="newStoreName">New Store Name</label>
+            <input type="text" id="newStoreName" placeholder="Enter new store name" autocomplete="organization"/>
+          </div>
+          <button class="btn btn-primary" id="storenameBtn" onclick="submitChangeStoreName()">
+            ✔ Update Store Name
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Panel: Change Description ── -->
+      <section class="cdash-panel" id="panel-storedesc">
+        <div class="panel-header">
+          <h1>Change Store Description</h1>
+          <p>Update your store's description. Requires credentials to be entered first.</p>
+        </div>
+        <div class="form-card">
+          <div class="form-group">
+            <label for="newStoreDesc">New Store Description</label>
+            <textarea id="newStoreDesc" placeholder="Enter new store description…"></textarea>
+          </div>
+          <button class="btn btn-primary" id="storedescBtn" onclick="submitChangeStoreDesc()">
+            ✔ Update Description
+          </button>
+        </div>
+      </section>
+
+
+
+    </main>
+  </div><!-- /.cdash-layout -->
+</div><!-- /.dash-wrapper -->
 
 <script th:src="@{/js/utils.js}"></script>
 <script>
-  // Guard — must be a vendor
+  /* ── Auth guard ── */
   if (!requireAuth('vendor')) { /* redirected */ }
 
   const username = getUsername() || 'Vendor';
   document.getElementById('headerUsername').textContent = username;
-  document.getElementById('welcomeUsername').textContent = username;
-  document.getElementById('avatarInitial').textContent = username.charAt(0).toUpperCase();
+  document.getElementById('avatarInitial').textContent  = username.charAt(0).toUpperCase();
 
-  async function deleteAccount() {
-    if (!confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
-    const btn = document.getElementById('deleteBtn');
-    setLoading(btn, true);
+  /* ── Sidebar panel switching ── */
+  function showPanel(name) {
+    document.querySelectorAll('.cdash-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    if (name === 'profile') loadProfile();
+  }
 
-    const result = await apiPut('/account/delete', undefined, true);
-    setLoading(btn, false);
+  /* ─────────────────────────────────────────────────────
+     GET /vendor/get/credentials  →  getCredentials()
+  ───────────────────────────────────────────────────── */
+  async function loadProfile() {
+    const loading = document.getElementById('profileLoading');
+    const content = document.getElementById('profileContent');
+    const error   = document.getElementById('profileError');
 
-    if (result.ok) {
-      showToast('Account deleted. Goodbye!');
-      setTimeout(() => { clearToken(); window.location.href = '/login'; }, 1600);
+    loading.style.display = 'flex';
+    content.style.display = 'none';
+    error.style.display   = 'none';
+
+    const res = await fetch('/vendor/get/credentials', {
+      headers: { 'Authorization': 'Bearer ' + getToken() }
+    });
+
+    loading.style.display = 'none';
+
+    if (res.ok) {
+      const d = await res.json();
+
+      document.getElementById('profileAvatar').textContent    = (d.storeName || username).charAt(0).toUpperCase();
+      document.getElementById('profileStoreName').textContent  = d.storeName || '—';
+      document.getElementById('profileUsername').textContent   = '@' + username;
+      document.getElementById('pfId').textContent              = d.id ?? '—';
+      document.getElementById('pfStoreName').textContent       = d.storeName || '—';
+      document.getElementById('pfStoreDesc').textContent       = d.storeDescription || '—';
+      document.getElementById('profileStatus').innerHTML =
+        '<span class="status-badge registered">✓ Registered</span>';
+
+      content.style.display = 'block';
     } else {
-      showToast(result.data || 'Could not delete account.', 'error');
+      document.getElementById('profileStatus').innerHTML =
+        '<span class="status-badge not-registered">Not Registered</span>';
+      error.style.display = 'block';
     }
   }
+
+  /* ─────────────────────────────────────────────────────
+     POST /vendor/enter/details  →  setCredentials()
+  ───────────────────────────────────────────────────── */
+  async function submitEnterCredentials() {
+    const storeName        = document.getElementById('enterStoreName').value.trim();
+    const storeDescription = document.getElementById('enterStoreDesc').value.trim();
+    if (!storeName || !storeDescription) {
+      showToast('All fields are required.', 'error'); return;
+    }
+    const btn = document.getElementById('enterBtn');
+    setLoading(btn, true);
+    const res = await fetch('/vendor/enter/details', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ storeName, storeDescription })
+    });
+    const text = await res.text();
+    setLoading(btn, false);
+    if (res.ok) {
+      showToast(text || 'Credentials saved!');
+      document.getElementById('enterStoreName').value = '';
+      document.getElementById('enterStoreDesc').value = '';
+    } else {
+      showToast(text || 'Failed to save credentials.', 'error');
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────
+     PUT /vendor/storeName/change  →  changeStoreName()
+  ───────────────────────────────────────────────────── */
+  async function submitChangeStoreName() {
+    const storeName = document.getElementById('newStoreName').value.trim();
+    if (!storeName) { showToast('Store name cannot be empty.', 'error'); return; }
+    const btn = document.getElementById('storenameBtn');
+    setLoading(btn, true);
+    const result = await apiPutParams('/vendor/storeName/change', { storeName }, true);
+    setLoading(btn, false);
+    if (result.ok) {
+      showToast(result.data || 'Store name updated!');
+      document.getElementById('newStoreName').value = '';
+    } else {
+      showToast(result.data || 'Could not update store name.', 'error');
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────
+     PUT /vendor/storeDescription/change  →  changeStoreDescription()
+  ───────────────────────────────────────────────────── */
+  async function submitChangeStoreDesc() {
+    const storeDesc = document.getElementById('newStoreDesc').value.trim();
+    if (!storeDesc) { showToast('Description cannot be empty.', 'error'); return; }
+    const btn = document.getElementById('storedescBtn');
+    setLoading(btn, true);
+    const result = await apiPutParams('/vendor/storeDescription/change', { storeDesc }, true);
+    setLoading(btn, false);
+    if (result.ok) {
+      showToast(result.data || 'Description updated!');
+      document.getElementById('newStoreDesc').value = '';
+    } else {
+      showToast(result.data || 'Could not update description.', 'error');
+    }
+  }
+
+
+
+  /* ── Load profile on first render ── */
+  loadProfile();
 </script>
 </body>
 </html>

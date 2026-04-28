@@ -36,15 +36,6 @@ public class AccountService {
         return "Account created successfully.";
     }
 
-    public String deleteAccount(String username) {
-        Optional<UserDetailsEntity> userDetailsEntity = userDetailsRepository.findByUsername(username);
-
-        if (userDetailsEntity.isEmpty()) throw new InvalidityException("Account does not exists.");
-
-        userDetailsRepository.delete(userDetailsEntity.get());
-        return "Account removed successfully.";
-    }
-
     public String resetAccountPassword(String username, String newPassword) {
         Optional<UserDetailsEntity> userDetailsEntity = userDetailsRepository.findByUsername(username);
 

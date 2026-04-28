@@ -6,6 +6,271 @@
   <meta name="description" content="Customer Dashboard — EcommercePlatform"/>
   <title>Customer Dashboard — EcommercePlatform</title>
   <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+  <style>
+    /* ── Sidebar layout ── */
+    .cdash-layout {
+      display: flex;
+      flex: 1;
+      min-height: calc(100vh - 64px);
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .cdash-sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.03);
+      border-right: 1px solid var(--border);
+      padding: 1.8rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      overflow-y: auto;
+    }
+
+    .sidebar-section-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      padding: 0.9rem 1.4rem 0.4rem;
+    }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.65rem 1.4rem;
+      margin: 0 0.6rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: background var(--transition), color var(--transition), transform var(--transition);
+      border: none;
+      background: none;
+      width: calc(100% - 1.2rem);
+      text-align: left;
+    }
+    .sidebar-nav-item:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-primary);
+      transform: translateX(2px);
+    }
+    .sidebar-nav-item.active {
+      background: rgba(138,99,255,0.15);
+      color: var(--accent-1);
+      font-weight: 600;
+    }
+    .sidebar-nav-item.danger-item { color: #ff8a95; }
+    .sidebar-nav-item.danger-item:hover {
+      background: rgba(255,95,110,0.1);
+      color: var(--danger);
+    }
+    .sidebar-nav-item.danger-item.active {
+      background: rgba(255,95,110,0.15);
+      color: var(--danger);
+    }
+    .sidebar-icon { font-size: 1rem; width: 1.2rem; text-align: center; flex-shrink: 0; }
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0.75rem 1.2rem;
+    }
+
+    /* ── Main content area ── */
+    .cdash-content {
+      flex: 1;
+      padding: 2.5rem 2.8rem;
+      overflow-y: auto;
+    }
+
+    /* ── Panel ── */
+    .cdash-panel {
+      display: none;
+      animation: slideUp 0.32s cubic-bezier(0.4,0,0.2,1) both;
+      max-width: 640px;
+    }
+    .cdash-panel.active { display: block; }
+
+    .panel-header {
+      margin-bottom: 2rem;
+    }
+    .panel-header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: 0.3rem;
+    }
+    .panel-header p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    /* ── Profile card ── */
+    .profile-hero {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.4rem;
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-card);
+    }
+    .profile-avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--accent-grad);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 4px 18px rgba(138,99,255,0.35);
+    }
+    .profile-meta h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+    }
+    .profile-meta .profile-sub {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .profile-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .profile-field {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.2rem;
+      backdrop-filter: blur(10px);
+    }
+    .profile-field-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+    }
+    .profile-field-value {
+      font-size: 0.975rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .profile-field-value.empty {
+      color: var(--text-muted);
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+    }
+    .status-badge.registered {
+      background: rgba(60,200,120,0.15);
+      color: #6efaaa;
+      border: 1px solid rgba(60,200,120,0.25);
+    }
+    .status-badge.not-registered {
+      background: rgba(255,95,110,0.12);
+      color: #ffaab0;
+      border: 1px solid rgba(255,95,110,0.22);
+    }
+
+    /* ── Form panel card ── */
+    .form-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-card);
+    }
+    .form-card .form-group { margin-bottom: 1.2rem; }
+    .form-card .btn { width: auto; min-width: 160px; }
+
+    /* ── Inline tip ── */
+    .field-tip {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    /* ── Danger panel ── */
+    .danger-card {
+      background: rgba(255,95,110,0.06);
+      border: 1px solid rgba(255,95,110,0.18);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+    }
+    .danger-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--danger);
+      margin-bottom: 0.5rem;
+    }
+    .danger-card p {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin-bottom: 1.4rem;
+      line-height: 1.55;
+    }
+
+    /* ── Loader overlay for profile ── */
+    .profile-loading {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      padding: 1.5rem 0;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .cdash-layout { flex-direction: column; }
+      .cdash-sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding: 0.6rem;
+        gap: 0.2rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      .sidebar-section-label, .sidebar-divider { display: none; }
+      .sidebar-nav-item { width: auto; font-size: 0.8rem; padding: 0.5rem 0.8rem; }
+      .cdash-content { padding: 1.5rem 1rem; }
+      .profile-fields { grid-template-columns: 1fr; }
+      .profile-hero { flex-direction: column; text-align: center; }
+    }
+  </style>
 </head>
 <body class="dashboard-page">
 <div class="dash-wrapper">
@@ -26,53 +291,318 @@
     </div>
   </header>
 
-  <!-- Main Content -->
-  <main class="dash-main">
-    <div class="dash-card">
-      <span class="role-icon">🛍️</span>
-      <h1>Customer Dashboard</h1>
-      <p class="dash-welcome-sub">
-        Welcome, <strong id="welcomeUsername">…</strong>!<br/>
-        You're signed in as a <strong>Customer</strong>.
-      </p>
+  <!-- Body -->
+  <div class="cdash-layout">
 
-      <!-- Danger Zone -->
-      <div class="danger-zone">
-        <h3>⚠ Danger Zone</h3>
-        <button id="deleteBtn" class="btn btn-danger" onclick="deleteAccount()">
-          🗑 Delete My Account
-        </button>
-      </div>
-    </div>
-  </main>
+    <!-- Sidebar -->
+    <nav class="cdash-sidebar" aria-label="Customer navigation">
+      <span class="sidebar-section-label">Account</span>
 
-</div>
+      <button class="sidebar-nav-item active" id="nav-profile" onclick="showPanel('profile')">
+        <span class="sidebar-icon">👤</span> My Profile
+      </button>
+
+      <button class="sidebar-nav-item" id="nav-enter" onclick="showPanel('enter')">
+        <span class="sidebar-icon">✏️</span> Enter Credentials
+      </button>
+
+      <div class="sidebar-section-label">Modify</div>
+
+      <button class="sidebar-nav-item" id="nav-firstname" onclick="showPanel('firstname')">
+        <span class="sidebar-icon">🔤</span> Change First Name
+      </button>
+
+      <button class="sidebar-nav-item" id="nav-lastname" onclick="showPanel('lastname')">
+        <span class="sidebar-icon">🔡</span> Change Last Name
+      </button>
+
+      <button class="sidebar-nav-item" id="nav-phone" onclick="showPanel('phone')">
+        <span class="sidebar-icon">📱</span> Change Phone
+      </button>
+
+
+    </nav>
+
+    <!-- Content -->
+    <main class="cdash-content">
+
+      <!-- ── Panel: My Profile ── -->
+      <section class="cdash-panel active" id="panel-profile">
+        <div class="panel-header">
+          <h1>My Profile</h1>
+          <p>Your registered customer details fetched directly from the server.</p>
+        </div>
+
+        <div id="profileLoading" class="profile-loading">
+          <span class="spinner"></span> Loading profile…
+        </div>
+
+        <div id="profileContent" style="display:none">
+          <div class="profile-hero">
+            <div class="profile-avatar" id="profileAvatar">?</div>
+            <div class="profile-meta">
+              <h2 id="profileFullName">—</h2>
+              <div class="profile-sub" id="profileUsername">@username</div>
+              <div style="margin-top:0.5rem" id="profileStatus"></div>
+            </div>
+          </div>
+
+          <div class="profile-fields">
+            <div class="profile-field">
+              <div class="profile-field-label">Customer ID</div>
+              <div class="profile-field-value" id="pfId">—</div>
+            </div>
+            <div class="profile-field">
+              <div class="profile-field-label">Phone Number</div>
+              <div class="profile-field-value" id="pfPhone">—</div>
+            </div>
+            <div class="profile-field">
+              <div class="profile-field-label">First Name</div>
+              <div class="profile-field-value" id="pfFirst">—</div>
+            </div>
+            <div class="profile-field">
+              <div class="profile-field-label">Last Name</div>
+              <div class="profile-field-value" id="pfLast">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="profileError" style="display:none; margin-top:1rem;">
+          <div class="status-badge not-registered">⚠ Credentials not entered yet</div>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.6rem;">
+            Head over to <strong>Enter Credentials</strong> to set up your profile.
+          </p>
+        </div>
+      </section>
+
+      <!-- ── Panel: Enter Credentials ── -->
+      <section class="cdash-panel" id="panel-enter">
+        <div class="panel-header">
+          <h1>Enter Credentials</h1>
+          <p>Set your customer profile for the first time. This can only be done once.</p>
+        </div>
+        <div class="form-card">
+          <div class="form-group">
+            <label for="enterFirstname">First Name</label>
+            <input type="text" id="enterFirstname" placeholder="e.g. Vedavyaas" autocomplete="given-name"/>
+          </div>
+          <div class="form-group">
+            <label for="enterLastname">Last Name</label>
+            <input type="text" id="enterLastname" placeholder="e.g. MR" autocomplete="family-name"/>
+          </div>
+          <div class="form-group">
+            <label for="enterPhone">Phone Number</label>
+            <input type="tel" id="enterPhone" placeholder="e.g. +91 98765 43210" autocomplete="tel"/>
+            <div class="field-tip">Include country code for international numbers.</div>
+          </div>
+          <button class="btn btn-primary" id="enterBtn" onclick="submitEnterCredentials()">
+            💾 Save Credentials
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Panel: Change First Name ── -->
+      <section class="cdash-panel" id="panel-firstname">
+        <div class="panel-header">
+          <h1>Change First Name</h1>
+          <p>Update your first name on the platform. Requires credentials to be entered first.</p>
+        </div>
+        <div class="form-card">
+          <div class="form-group">
+            <label for="newFirstname">New First Name</label>
+            <input type="text" id="newFirstname" placeholder="Enter new first name" autocomplete="given-name"/>
+          </div>
+          <button class="btn btn-primary" id="firstnameBtn" onclick="submitChangeFirstname()">
+            ✔ Update First Name
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Panel: Change Last Name ── -->
+      <section class="cdash-panel" id="panel-lastname">
+        <div class="panel-header">
+          <h1>Change Last Name</h1>
+          <p>Update your last name. Requires credentials to be entered first.</p>
+        </div>
+        <div class="form-card">
+          <div class="form-group">
+            <label for="newLastname">New Last Name</label>
+            <input type="text" id="newLastname" placeholder="Enter new last name" autocomplete="family-name"/>
+          </div>
+          <button class="btn btn-primary" id="lastnameBtn" onclick="submitChangeLastname()">
+            ✔ Update Last Name
+          </button>
+        </div>
+      </section>
+
+      <!-- ── Panel: Change Phone ── -->
+      <section class="cdash-panel" id="panel-phone">
+        <div class="panel-header">
+          <h1>Change Phone Number</h1>
+          <p>Update your phone number. Requires credentials to be entered first.</p>
+        </div>
+        <div class="form-card">
+          <div class="form-group">
+            <label for="newPhone">New Phone Number</label>
+            <input type="tel" id="newPhone" placeholder="e.g. +91 98765 43210" autocomplete="tel"/>
+          </div>
+          <button class="btn btn-primary" id="phoneBtn" onclick="submitChangePhone()">
+            ✔ Update Phone Number
+          </button>
+        </div>
+      </section>
+
+
+
+    </main>
+  </div><!-- /.cdash-layout -->
+</div><!-- /.dash-wrapper -->
 
 <script th:src="@{/js/utils.js}"></script>
 <script>
-  // Guard — must be a customer
+  /* ── Auth guard ── */
   if (!requireAuth('customer')) { /* redirected */ }
 
   const username = getUsername() || 'Customer';
   document.getElementById('headerUsername').textContent = username;
-  document.getElementById('welcomeUsername').textContent = username;
-  document.getElementById('avatarInitial').textContent = username.charAt(0).toUpperCase();
+  document.getElementById('avatarInitial').textContent  = username.charAt(0).toUpperCase();
 
-  async function deleteAccount() {
-    if (!confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
-    const btn = document.getElementById('deleteBtn');
-    setLoading(btn, true);
+  /* ── Sidebar panel switching ── */
+  function showPanel(name) {
+    document.querySelectorAll('.cdash-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    if (name === 'profile') loadProfile();
+  }
 
-    const result = await apiPut('/account/delete', undefined, true);
-    setLoading(btn, false);
+  /* ─────────────────────────────────────────────────────
+     GET /  →  getSelf()
+  ───────────────────────────────────────────────────── */
+  async function loadProfile() {
+    const loading = document.getElementById('profileLoading');
+    const content = document.getElementById('profileContent');
+    const error   = document.getElementById('profileError');
 
-    if (result.ok) {
-      showToast('Account deleted. Goodbye!');
-      setTimeout(() => { clearToken(); window.location.href = '/login'; }, 1600);
+    loading.style.display = 'flex';
+    content.style.display = 'none';
+    error.style.display   = 'none';
+
+    const res = await fetch('/', {
+      headers: { 'Authorization': 'Bearer ' + getToken() }
+    });
+
+    loading.style.display = 'none';
+
+    if (res.ok) {
+      const d = await res.json();
+      const fullName = [d.firstname, d.lastname].filter(Boolean).join(' ') || '—';
+
+      document.getElementById('profileAvatar').textContent   = (d.firstname || username).charAt(0).toUpperCase();
+      document.getElementById('profileFullName').textContent  = fullName;
+      document.getElementById('profileUsername').textContent  = '@' + username;
+      document.getElementById('pfId').textContent             = d.id    ?? '—';
+      document.getElementById('pfFirst').textContent          = d.firstname  || '—';
+      document.getElementById('pfLast').textContent           = d.lastname   || '—';
+      document.getElementById('pfPhone').textContent          = d.phoneNumber || '—';
+      document.getElementById('profileStatus').innerHTML =
+        '<span class="status-badge registered">✓ Registered</span>';
+
+      content.style.display = 'block';
     } else {
-      showToast(result.data || 'Could not delete account.', 'error');
+      document.getElementById('profileStatus').innerHTML =
+        '<span class="status-badge not-registered">Not Registered</span>';
+      error.style.display = 'block';
     }
   }
+
+  /* ─────────────────────────────────────────────────────
+     POST /customer/enter/details  →  setCredentials()
+  ───────────────────────────────────────────────────── */
+  async function submitEnterCredentials() {
+    const firstname   = document.getElementById('enterFirstname').value.trim();
+    const lastname    = document.getElementById('enterLastname').value.trim();
+    const phoneNumber = document.getElementById('enterPhone').value.trim();
+    if (!firstname || !lastname || !phoneNumber) {
+      showToast('All fields are required.', 'error'); return;
+    }
+    const btn = document.getElementById('enterBtn');
+    setLoading(btn, true);
+    const res = await fetch('/customer/enter/details', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ firstname, lastname, phoneNumber })
+    });
+    const text = await res.text();
+    setLoading(btn, false);
+    if (res.ok) {
+      showToast(text || 'Credentials saved!');
+      document.getElementById('enterFirstname').value = '';
+      document.getElementById('enterLastname').value  = '';
+      document.getElementById('enterPhone').value     = '';
+    } else {
+      showToast(text || 'Failed to save credentials.', 'error');
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────
+     PUT /customer/firstname/modify  →  changeFirstname()
+  ───────────────────────────────────────────────────── */
+  async function submitChangeFirstname() {
+    const firstname = document.getElementById('newFirstname').value.trim();
+    if (!firstname) { showToast('First name cannot be empty.', 'error'); return; }
+    const btn = document.getElementById('firstnameBtn');
+    setLoading(btn, true);
+    const result = await apiPutParams('/customer/firstname/modify', { firstname }, true);
+    setLoading(btn, false);
+    if (result.ok) {
+      showToast(result.data || 'First name updated!');
+      document.getElementById('newFirstname').value = '';
+    } else {
+      showToast(result.data || 'Could not update first name.', 'error');
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────
+     PUT /customer/lastname/modify  →  changeLastname()
+  ───────────────────────────────────────────────────── */
+  async function submitChangeLastname() {
+    const lastname = document.getElementById('newLastname').value.trim();
+    if (!lastname) { showToast('Last name cannot be empty.', 'error'); return; }
+    const btn = document.getElementById('lastnameBtn');
+    setLoading(btn, true);
+    const result = await apiPutParams('/customer/lastname/modify', { lastname }, true);
+    setLoading(btn, false);
+    if (result.ok) {
+      showToast(result.data || 'Last name updated!');
+      document.getElementById('newLastname').value = '';
+    } else {
+      showToast(result.data || 'Could not update last name.', 'error');
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────
+     PUT /customer/phone/modify  →  changePhoneNumber()
+  ───────────────────────────────────────────────────── */
+  async function submitChangePhone() {
+    const phoneNumber = document.getElementById('newPhone').value.trim();
+    if (!phoneNumber) { showToast('Phone number cannot be empty.', 'error'); return; }
+    const btn = document.getElementById('phoneBtn');
+    setLoading(btn, true);
+    const result = await apiPutParams('/customer/phone/modify', { phoneNumber }, true);
+    setLoading(btn, false);
+    if (result.ok) {
+      showToast(result.data || 'Phone number updated!');
+      document.getElementById('newPhone').value = '';
+    } else {
+      showToast(result.data || 'Could not update phone number.', 'error');
+    }
+  }
+
+
+
+  /* ── Load profile on first render ── */
+  loadProfile();
 </script>
 </body>
 </html>
