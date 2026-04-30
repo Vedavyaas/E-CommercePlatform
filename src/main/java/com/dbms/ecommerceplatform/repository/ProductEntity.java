@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 public class ProductEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long productId;
+    private Long Id;
 
     @ManyToOne
     private VendorEntity vendorEntity;
@@ -31,12 +31,12 @@ public class ProductEntity {
         this.stock = stock;
     }
 
-    public void setProductId(Long productId) {
-        this.productId = productId;
+    public void setId(Long productId) {
+        this.Id = productId;
     }
 
-    public Long getProductId() {
-        return productId;
+    public Long getId() {
+        return Id;
     }
 
     public VendorEntity getVendorEntity() {
