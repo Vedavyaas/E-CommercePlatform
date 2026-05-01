@@ -2,10 +2,13 @@ package com.dbms.ecommerceplatform.service;
 
 import com.dbms.ecommerceplatform.assets.InvalidityException;
 import com.dbms.ecommerceplatform.assets.ProductDetails;
+import com.dbms.ecommerceplatform.assets.Products;
 import com.dbms.ecommerceplatform.repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,12 +18,16 @@ public class ProductManagementService {
     private final VendorRepository vendorRepository;
     private final ProductRepository productRepository;
     private final VendorService vendorService;
+    private final CustomerRepository customerRepository;
+    private final OrderRepository orderRepository;
 
-    public ProductManagementService(UserDetailsRepository userDetailsRepository, VendorRepository vendorRepository, ProductRepository productRepository, VendorService vendorService) {
+    public ProductManagementService(UserDetailsRepository userDetailsRepository, VendorRepository vendorRepository, ProductRepository productRepository, VendorService vendorService, CustomerRepository customerRepository, OrderRepository orderRepository) {
         this.userDetailsRepository = userDetailsRepository;
         this.vendorRepository = vendorRepository;
         this.productRepository = productRepository;
         this.vendorService = vendorService;
+        this.customerRepository = customerRepository;
+        this.orderRepository = orderRepository;
     }
 
     public String addProduct(ProductDetails productDetails, String username) {
@@ -84,5 +91,35 @@ public class ProductManagementService {
         if (!productDetails.get().getVendorEntity().getUserDetailsEntity().getUsername().equals(username)) throw new InvalidityException("Product does not belong to you!");
 
         return new ProductDetails(productDetails.get().getId(), productDetails.get().getName(), productDetails.get().getDescription(), productDetails.get().getPrice(), productDetails.get().getStock());
+    }
+
+    public List<Products> getProducts() {
+        return productRepository.findEverything();
+    }
+
+    public List<Products> getProduct(String name) {
+        return productRepository.findByNameContaining(name);
+    }
+
+    @Transactional
+    public String buyProduct(Long id, Integer quantity, String username) {
+        Optional<ProductEntity> productEntity = productRepository.findById(id);
+        if (productEntity.isEmpty()) throw new InvalidityException("Product does not exist.");
+
+        if (productEntity.get().getStock() < quantity) return "Stock is lesser than your quantity to purchase";
+
+        Optional<CustomerEntity> customerEntity = customerRepository.findByUserDetailsEntity_Username(username);
+        if (customerEntity.isEmpty()) throw new InvalidityException("Customer id not registered!");
+
+        BigDecimal price = productEntity.get().getPrice();
+        productEntity.get().setStock(productEntity.get().getStock() - quantity);
+
+        if (productEntity.get().getStock() == 0) productRepository.delete(productEntity.get());
+        productRepository.save(productEntity.get());
+
+        OrderEntity orderEntity = new OrderEntity(customerEntity.get(), LocalDateTime.now(), "PURCHASED", price.multiply(BigDecimal.valueOf(quantity)));
+        orderRepository.save(orderEntity);
+
+        return "Product purchased successfully";
     }
 }

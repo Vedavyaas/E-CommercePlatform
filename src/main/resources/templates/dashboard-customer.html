@@ -250,6 +250,61 @@
       padding: 1.5rem 0;
     }
 
+    /* ── Product Card ── */
+    .product-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-card);
+    }
+    .product-card h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: var(--text-primary);
+    }
+    .product-card .store {
+      font-size: 0.8rem;
+      color: var(--accent-1);
+    }
+    .product-card .price {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #6efaaa;
+    }
+    .product-card .desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      flex: 1;
+      margin: 0.5rem 0;
+    }
+    .product-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: auto;
+      align-items: center;
+    }
+    .product-actions input {
+      width: 70px;
+      padding: 0.5rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-primary);
+      text-align: center;
+    }
+    .product-actions button {
+      flex: 1;
+      padding: 0.5rem;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 700px) {
       .cdash-layout { flex-direction: column; }
@@ -320,6 +375,10 @@
         <span class="sidebar-icon">📱</span> Change Phone
       </button>
 
+      <div class="sidebar-section-label">Shop</div>
+      <button class="sidebar-nav-item" id="nav-products" onclick="showPanel('products')">
+        <span class="sidebar-icon">🛍️</span> Browse Products
+      </button>
 
     </nav>
 
@@ -452,6 +511,30 @@
         </div>
       </section>
 
+      <!-- ── Panel: Browse Products ── -->
+      <section class="cdash-panel" id="panel-products">
+        <div class="panel-header">
+          <h1>Browse Products</h1>
+          <p>Find and purchase items from our vendors.</p>
+        </div>
+        
+        <div class="form-card" style="margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+          <div class="form-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+            <label for="searchProduct">Search by Name</label>
+            <input type="text" id="searchProduct" placeholder="Enter product name..."/>
+          </div>
+          <button class="btn btn-primary" style="min-width: 120px;" onclick="searchProducts()">🔍 Search</button>
+          <button class="btn" style="min-width: 120px; background: rgba(255,255,255,0.1);" onclick="loadAllProducts()">🔄 Clear</button>
+        </div>
+
+        <div id="productsLoading" class="profile-loading" style="display:none;">
+          <span class="spinner"></span> Loading products…
+        </div>
+
+        <div id="productsList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+          <!-- Product cards will be injected here -->
+        </div>
+      </section>
 
 
     </main>
@@ -474,6 +557,7 @@
     document.getElementById('panel-' + name).classList.add('active');
     document.getElementById('nav-' + name).classList.add('active');
     if (name === 'profile') loadProfile();
+    if (name === 'products') loadAllProducts();
   }
 
   /* ─────────────────────────────────────────────────────
@@ -599,7 +683,105 @@
     }
   }
 
+  /* ─────────────────────────────────────────────────────
+     GET /products/info & GET /product/info?name=...
+  ───────────────────────────────────────────────────── */
+  async function loadAllProducts() {
+    document.getElementById('searchProduct').value = '';
+    await fetchAndRenderProducts('/products/info');
+  }
 
+  async function searchProducts() {
+    const name = document.getElementById('searchProduct').value.trim();
+    if (!name) {
+      return loadAllProducts();
+    }
+    await fetchAndRenderProducts(`/product/info?name=${encodeURIComponent(name)}`);
+  }
+
+  async function fetchAndRenderProducts(url) {
+    const loading = document.getElementById('productsLoading');
+    const container = document.getElementById('productsList');
+    
+    loading.style.display = 'flex';
+    container.innerHTML = '';
+    
+    try {
+      const res = await fetch(url, {
+        headers: { 'Authorization': 'Bearer ' + getToken() }
+      });
+      
+      loading.style.display = 'none';
+      
+      if (res.ok) {
+        const products = await res.json();
+        if (products.length === 0) {
+          container.innerHTML = '<p style="color:var(--text-secondary)">No products found.</p>';
+          return;
+        }
+        
+        products.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'product-card';
+          const pid = p.Id || p.id;
+          
+          card.innerHTML = `
+            <h3>${escapeHtml(p.name)}</h3>
+            <div class="store">Vendor: ${escapeHtml(p.storeName || 'Unknown')}</div>
+            <div class="price">$${p.price}</div>
+            <div class="desc">${escapeHtml(p.description || '')}</div>
+            <div class="store" style="color:var(--text-secondary)">Stock: ${p.stock}</div>
+            <div class="product-actions">
+              <input type="number" id="qty-${pid}" value="1" min="1" max="${p.stock}"/>
+              <button class="btn btn-primary" onclick="buyProduct(${pid})">🛒 Buy</button>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      } else {
+        container.innerHTML = '<p style="color:var(--danger)">Failed to load products.</p>';
+      }
+    } catch (err) {
+      loading.style.display = 'none';
+      container.innerHTML = '<p style="color:var(--danger)">Error loading products.</p>';
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>'"]/g, match => {
+      const escape = {
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      };
+      return escape[match];
+    });
+  }
+
+  /* ─────────────────────────────────────────────────────
+     PUT /product/buy?id=...&quantity=...
+  ───────────────────────────────────────────────────── */
+  async function buyProduct(id) {
+    const qtyInput = document.getElementById('qty-' + id);
+    const quantity = parseInt(qtyInput.value, 10);
+    
+    if (!quantity || quantity < 1) {
+      showToast('Please enter a valid quantity.', 'error');
+      return;
+    }
+    
+    const res = await apiPutParams('/product/buy', { id, quantity }, true);
+    if (res.ok) {
+      showToast(res.data || 'Product purchased successfully!');
+      // Reload products to update stock
+      if (document.getElementById('searchProduct').value.trim()) {
+        searchProducts();
+      } else {
+        loadAllProducts();
+      }
+    } else {
+      showToast(res.data || 'Failed to purchase product.', 'error');
+    }
+  }
 
   /* ── Load profile on first render ── */
   loadProfile();

@@ -7,5 +7,4 @@ import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
-    List<OrderEntity> findByCustomer(CustomerEntity customer);
 }

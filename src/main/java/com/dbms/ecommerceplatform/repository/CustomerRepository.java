@@ -13,4 +13,6 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, Long> 
 
     @Query("SELECT new com.dbms.ecommerceplatform.assets.CustomerDTO(c.customerId, c.firstname, c.lastname, c.phoneNumber) FROM CustomerEntity c WHERE c.userDetailsEntity = :userDetailsEntity")
     Optional<CustomerDTO> findCustomerEntityByUserDetailsEntity(UserDetailsEntity userDetailsEntity);
+
+    Optional<CustomerEntity> findByUserDetailsEntity_Username(String userDetailsEntityUsername);
 }
