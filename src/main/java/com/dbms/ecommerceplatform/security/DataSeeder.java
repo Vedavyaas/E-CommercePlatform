@@ -9,6 +9,8 @@ import com.dbms.ecommerceplatform.repository.UserDetailsEntity;
 import com.dbms.ecommerceplatform.repository.UserDetailsRepository;
 import com.dbms.ecommerceplatform.repository.VendorEntity;
 import com.dbms.ecommerceplatform.repository.VendorRepository;
+import com.dbms.ecommerceplatform.repository.WalletEntity;
+import com.dbms.ecommerceplatform.repository.WalletRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -23,14 +25,16 @@ public class DataSeeder implements CommandLineRunner {
     private final CustomerRepository customerRepository;
     private final VendorRepository vendorRepository;
     private final ProductRepository productRepository;
+    private final WalletRepository walletRepository;
 
     public DataSeeder(UserDetailsRepository userDetailsRepository, PasswordEncoder passwordEncoder,
-                      CustomerRepository customerRepository, VendorRepository vendorRepository, ProductRepository productRepository) {
+                      CustomerRepository customerRepository, VendorRepository vendorRepository, ProductRepository productRepository, WalletRepository walletRepository) {
         this.userDetailsRepository = userDetailsRepository;
         this.passwordEncoder = passwordEncoder;
         this.customerRepository = customerRepository;
         this.vendorRepository = vendorRepository;
         this.productRepository = productRepository;
+        this.walletRepository = walletRepository;
     }
 
     @Override
@@ -41,6 +45,10 @@ public class DataSeeder implements CommandLineRunner {
             UserDetailsEntity userDetailsEntity3 = new UserDetailsEntity("admin", "admin@gmail.com", passwordEncoder.encode("123"), Role.ADMIN);
 
             userDetailsRepository.saveAll(List.of(userDetailsEntity1, userDetailsEntity2, userDetailsEntity3));
+
+            walletRepository.save(new WalletEntity(userDetailsEntity1, new BigDecimal("1000")));
+            walletRepository.save(new WalletEntity(userDetailsEntity2, new BigDecimal("1000")));
+            walletRepository.save(new WalletEntity(userDetailsEntity3, new BigDecimal("1000")));
 
             CustomerEntity customerEntity = new CustomerEntity(userDetailsEntity1, "John", "Doe", "+1234567890");
             customerRepository.save(customerEntity);

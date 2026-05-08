@@ -20,14 +20,16 @@ public class ProductManagementService {
     private final VendorService vendorService;
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
+    private final WalletRepository walletRepository;
 
-    public ProductManagementService(UserDetailsRepository userDetailsRepository, VendorRepository vendorRepository, ProductRepository productRepository, VendorService vendorService, CustomerRepository customerRepository, OrderRepository orderRepository) {
+    public ProductManagementService(UserDetailsRepository userDetailsRepository, VendorRepository vendorRepository, ProductRepository productRepository, VendorService vendorService, CustomerRepository customerRepository, OrderRepository orderRepository, WalletRepository walletRepository) {
         this.userDetailsRepository = userDetailsRepository;
         this.vendorRepository = vendorRepository;
         this.productRepository = productRepository;
         this.vendorService = vendorService;
         this.customerRepository = customerRepository;
         this.orderRepository = orderRepository;
+        this.walletRepository = walletRepository;
     }
 
     public String addProduct(ProductDetails productDetails, String username) {
@@ -112,10 +114,25 @@ public class ProductManagementService {
         if (customerEntity.isEmpty()) throw new InvalidityException("Customer id not registered!");
 
         BigDecimal price = productEntity.get().getPrice();
+        BigDecimal totalCost = price.multiply(BigDecimal.valueOf(quantity));
+
+        Optional<WalletEntity> customerWallet = walletRepository.findByUsername(username);
+        if (customerWallet.isEmpty()) throw new InvalidityException("Customer wallet not found!");
+        
+        if (customerWallet.get().getBalance().compareTo(totalCost) < 0) throw new InvalidityException("Insufficient funds!");
+
+        Optional<WalletEntity> vendorWallet = walletRepository.findByUsername(productEntity.get().getVendorEntity().getUserDetailsEntity().getUsername());
+        if (vendorWallet.isEmpty()) throw new InvalidityException("Vendor wallet not found!");
+
         productEntity.get().setStock(productEntity.get().getStock() - quantity);
 
         if (productEntity.get().getStock() == 0) productRepository.delete(productEntity.get());
         productRepository.save(productEntity.get());
+
+        customerWallet.get().setBalance(customerWallet.get().getBalance().subtract(totalCost));
+        vendorWallet.get().setBalance(vendorWallet.get().getBalance().add(totalCost));
+        walletRepository.save(customerWallet.get());
+        walletRepository.save(vendorWallet.get());
 
         OrderEntity orderEntity = new OrderEntity(customerEntity.get(), LocalDateTime.now(), "PURCHASED", price.multiply(BigDecimal.valueOf(quantity)));
         orderRepository.save(orderEntity);

@@ -4,9 +4,12 @@ import com.dbms.ecommerceplatform.assets.AccountDetails;
 import com.dbms.ecommerceplatform.assets.InvalidityException;
 import com.dbms.ecommerceplatform.repository.UserDetailsEntity;
 import com.dbms.ecommerceplatform.repository.UserDetailsRepository;
+import com.dbms.ecommerceplatform.repository.WalletEntity;
+import com.dbms.ecommerceplatform.repository.WalletRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Service
@@ -16,9 +19,12 @@ public class AccountService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public AccountService(UserDetailsRepository userDetailsRepository, PasswordEncoder passwordEncoder) {
+    private final WalletRepository walletRepository;
+
+    public AccountService(UserDetailsRepository userDetailsRepository, PasswordEncoder passwordEncoder, WalletRepository walletRepository) {
         this.userDetailsRepository = userDetailsRepository;
         this.passwordEncoder = passwordEncoder;
+        this.walletRepository = walletRepository;
     }
 
     public String createAccount(AccountDetails accountDetails) {
@@ -32,6 +38,8 @@ public class AccountService {
 
         UserDetailsEntity userDetailsEntity2 = new UserDetailsEntity(accountDetails.username(), accountDetails.email(), passwordEncoder.encode(accountDetails.password()), accountDetails.role());
         userDetailsRepository.save(userDetailsEntity2);
+
+        walletRepository.save(new WalletEntity(userDetailsEntity2, new BigDecimal("1000")));
 
         return "Account created successfully.";
     }

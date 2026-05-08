@@ -8,6 +8,48 @@
   <link rel="stylesheet" th:href="@{/css/styles.css}"/>
   <style>
     .dash-role-badge.admin { background: linear-gradient(135deg,#ff5f6e,#ff8e53); }
+    
+    .logs-table-container {
+      margin-top: 2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+    
+    .logs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    
+    .logs-table th, .logs-table td {
+      padding: 1rem 1.5rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .logs-table th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.75rem;
+    }
+    
+    .logs-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
+    .logs-table td.error {
+      color: var(--danger);
+    }
+    
+    .logs-table td.success {
+      color: #6efaaa;
+    }
   </style>
 </head>
 <body class="dashboard-page">
@@ -38,7 +80,25 @@
         Welcome, <strong id="welcomeUsername">…</strong>!<br/>
         You're signed in as an <strong>Administrator</strong>.
       </p>
-
+      
+      <div class="logs-table-container">
+        <table class="logs-table" id="logsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Timestamp</th>
+              <th>User</th>
+              <th>Action</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody">
+            <tr>
+              <td colspan="5" style="text-align: center;">Loading logs...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
     </div>
   </main>
@@ -55,7 +115,46 @@
   document.getElementById('welcomeUsername').textContent = username;
   document.getElementById('avatarInitial').textContent = username.charAt(0).toUpperCase();
 
+  async function loadLogs() {
+    try {
+      const res = await fetch('/api/admin/logs', {
+        headers: { 'Authorization': 'Bearer ' + getToken() }
+      });
+      
+      const tbody = document.getElementById('logsTableBody');
+      
+      if (res.ok) {
+        const logs = await res.json();
+        
+        if (logs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No logs found.</td></tr>';
+          return;
+        }
+        
+        tbody.innerHTML = '';
+        logs.forEach(log => {
+          const row = document.createElement('tr');
+          const statusClass = log.details.startsWith('ERROR') ? 'error' : 'success';
+          const date = new Date(log.timestamp).toLocaleString();
+          
+          row.innerHTML = `
+            <td>${log.id}</td>
+            <td>${date}</td>
+            <td>${log.username}</td>
+            <td>${log.action}</td>
+            <td class="${statusClass}">${log.details}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } else {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger);">Failed to load logs.</td></tr>';
+      }
+    } catch (err) {
+      document.getElementById('logsTableBody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger);">Error loading logs.</td></tr>';
+    }
+  }
 
+  loadLogs();
 </script>
 </body>
 </html>
